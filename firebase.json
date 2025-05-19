@@ -1,0 +1,43 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "ageapp-e65d8",
+          "appId": "1:512678863892:android:c71370f857725ecbfbb301",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "ageapp-e65d8",
+          "configurations": {
+            "android": "1:512678863892:android:c71370f857725ecbfbb301",
+            "ios": "1:512678863892:ios:61c741fab5f38ba5fbb301",
+            "macos": "1:512678863892:ios:61c741fab5f38ba5fbb301",
+            "web": "1:512678863892:web:d709c9d078ceeacdfbb301",
+            "windows": "1:512678863892:web:96fd3f02e2aff091fbb301"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

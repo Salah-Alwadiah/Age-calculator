@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import 'dart:math';
 
-void main() {
+Future<void> main() async {
+    WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -21,7 +21,6 @@ class _MyAppState extends State<MyApp> {
 
   String strText = '';
   String birthdayMessage = '';
-  String videoMessage = '';
   String? videoPath;
   VideoPlayerController? _videoController;
 
@@ -37,11 +36,8 @@ class _MyAppState extends State<MyApp> {
   void resetState() {
     setState(() {
       strText = 'يرجى إدخال قيم صحيحة';
-      
       birthdayMessage = '';
-      videoMessage = '';
-      videoPath = 'assets/n12.mp4';
-      _initializeVideo();
+      _disposeVideo();
     });
   }
 
@@ -81,43 +77,37 @@ class _MyAppState extends State<MyApp> {
     int daysUntilBirthday = nextBirthday.difference(today).inDays;
 
     setState(() {
-    strText = (age >= 11) 
-    ? 'عمرك $age سنة' 
-    : (age % 2 == 0 ? 'عمرك $age سنوات' : 'عمرك $age سنة');
+      strText = (age >= 11) 
+          ? 'عمرك $age سنة' 
+          : (age % 2 == 0 ? 'عمرك $age سنوات' : 'عمرك $age سنة');
       birthdayMessage = 'متبقي $daysUntilBirthday يومًا حتى يوم ميلادك القادم 🎉';
-      _selectRandomVideo(age);
+      _selectRandomVideo(age); // تحديث الفيديو بناءً على العمر
     });
   }
 
-void _selectRandomVideo(int age) {
-  List<String> videoPaths = [];
+  void _selectRandomVideo(int age) {
+    List<String> videoPaths;
 
-  if (age >= 11 && age <= 25) {
-    videoPaths = ['assets/n28.mp4', 'assets/n17.mp4', 'assets/n16.mp4', 
-    'assets/n19.mp4', 'assets/n5.mp4', 'assets/n6.mp4'];
-    videoMessage = '';
-  } else if (age >= 26 && age <= 30) {
-    videoPaths = ['assets/n1.mp4', 'assets/n13.mp4', 'assets/n5.mp4' , 'assets/n32.mp4'];
-    videoMessage = '';
-  } else {
-    videoPaths = ['assets/n10.mp4', 'assets/n20.mp4', 'assets/n3.mp4', 'assets/n11.mp4', 'assets/n31.mp4'];
-    videoMessage = '';
+    if (age <= 10) {
+      videoPaths = ['assets/n20.mp4', 'assets/n12.mp4'];
+    } else if (age >= 11 && age <= 19) {
+      videoPaths = ['assets/n4.mp4', 'assets/n15.mp4'];
+    } else if (age >= 20 && age <= 25) {
+      videoPaths = ['assets/n19.mp4', 'assets/n28.mp4', 'assets/n23.mp4'];
+    }else if (age >= 26 && age <= 36) {
+      videoPaths = ['assets/n26.mp4', 'assets/n24.mp4', 'assets/n17.mp4', 'assets/n32.mp4'];
+    }else if (age >= 37 && age <= 55) {
+      videoPaths = ['assets/n32.mp4', 'assets/n25.mp4', 'assets/n30.mp4'];
+    }
+    else {
+      videoPaths = ['assets/n22.mp4', 'assets/n8.mp4', 'assets/n7.mp4'];
+    }
+
+    setState(() {
+      videoPath = (videoPaths..shuffle()).first;
+      _initializeVideo();
+    });
   }
-
-  // اختيار فيديو عشوائي باستخدام مؤشر عشوائي
-  if (videoPaths.isNotEmpty) {
-    // 🔹 اختيار فيديو عشوائي من القائمة الخاصة بالفئة العمرية فقط
-    final randomIndex = Random().nextInt(videoPaths.length);  
-    videoPath = videoPaths[randomIndex];
-
-    // تشغيل الفيديو الجديد
-    _initializeVideo();
-  }
-
-  setState(() {
-    _initializeVideo();
-  });
-}
 
   void _initializeVideo() {
     if (videoPath != null) {
@@ -161,9 +151,11 @@ void _selectRandomVideo(int age) {
                 buildTextField(dayController, 'اليوم', 'أدخل اليوم', Icons.calendar_today),
                 buildTextField(monthController, 'الشهر', 'أدخل الشهر', Icons.date_range),
                 buildTextField(yearController, 'السنة', 'أدخل سنة الميلاد', Icons.event),
+
                 const SizedBox(height: 20),
                 Text(strText, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: col)),
                 Text(birthdayMessage, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: col)),
+
                 if (_videoController != null && _videoController!.value.isInitialized)
                   Column(
                     children: [
@@ -171,14 +163,39 @@ void _selectRandomVideo(int age) {
                         height: 400,
                         child: VideoPlayer(_videoController!),
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        videoMessage,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue),
-                        textAlign: TextAlign.center,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              _videoController!.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                              size: 30,
+                              color: Colors.purple[800],
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                if (_videoController!.value.isPlaying) {
+                                  _videoController!.pause();
+                                } else {
+                                  _videoController!.play();
+                                }
+                              });
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.replay, size: 30, color: Colors.purple[800]),
+                            onPressed: () {
+                              setState(() {
+                                _videoController!.seekTo(Duration.zero);
+                                _videoController!.play();
+                              });
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),
+
                 ElevatedButton(
                   onPressed: calculateAge,
                   style: ElevatedButton.styleFrom(
@@ -195,8 +212,6 @@ void _selectRandomVideo(int age) {
       ),
     );
   }
-}
-
 
   Widget buildTextField(TextEditingController controller, String label, String hint, IconData icon) {
     return Padding(
@@ -219,3 +234,4 @@ void _selectRandomVideo(int age) {
       ),
     );
   }
+}
